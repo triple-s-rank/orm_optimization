@@ -28,8 +28,7 @@ def serialize_tag(tag):
 
 
 def index(request):
-
-    most_popular_posts = []  # TODO. Как это посчитать?
+    most_popular_posts = sorted(Post.objects.all(), key=lambda post: len(post.likes.all()))[:4]
 
     fresh_posts = Post.objects.order_by('published_at')
     most_fresh_posts = list(fresh_posts)[-5:]
