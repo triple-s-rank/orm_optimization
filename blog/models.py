@@ -7,8 +7,19 @@ from django.contrib.auth.models import User
 class PostQuerySet(models.QuerySet):
 
     def year(self, year):
-        post_at_year = self.filter(published_at__year=year).order_by('published_at')
-        return post_at_year
+        return self.filter(published_at__year=year).order_by('published_at')
+
+    def popular(self):
+        return self.annotate(Count('likes')).order_by('-likes__count')
+
+    def fetch_with_comments_count(self):
+        popular_posts_ids = [post.id for post in self]
+        popular_posts_comments_counted = Post.objects.filter(id__in=popular_posts_ids).annotate(Count('comments'))
+        ids_and_comments = popular_posts_comments_counted.values_list('id', 'comments__count')
+        count_for_id = dict(ids_and_comments)
+        for post in self:
+            post.comments_count = count_for_id[post.id]
+        return self
 
 
 class TagQuerySet(models.QuerySet):
